@@ -75,11 +75,15 @@
 	select (InputOrderSelect. store (into-array vars) (IndomainMin.))]
     (.labeling label store select)))
 
-(defn- solve-siteswap-sudoku [rows cols assignments]
-  (let [store (Store.)
-	matrix (make-variables rows cols assignments store)
-	matrix-t (transpose matrix)
-	vars (flatten matrix)]
+(defn- num-solutions [vars store]
+  (let [label (DepthFirstSearch.)
+	select (InputOrderSelect. store (into-array vars) (IndomainMin.))]
+    (.searchAll (.getSolutionListener label) true)
+    (.labeling label store select)
+    (.solutionsNo (.getSolutionListener label))))
+
+(defn- sudoku-constraints [matrix store]
+  (let [matrix-t (transpose matrix)]
     (doseq [ss matrix]
       (is-siteswap ss store)
       (siteswap-nontrivial ss store))
@@ -91,6 +95,26 @@
 	      matrix)
     (do-pairs (fn [ss1 ss2]
 		(siteswaps-different ss1 ss2 store))
-	      matrix-t)
-    (let [result (solve vars store)]
-      [result vars])))
+	      matrix-t)))
+
+(defn- process-sudoku [assignments solver]
+  (let [rows (count assignments)
+	cols (count (first assignments))
+	store (Store.)
+	matrix (make-variables rows cols assignments store)
+	vars (flatten matrix)]
+    (sudoku-constraints matrix store)
+    (solver matrix vars store)))
+
+(defn- solve-sudoku [assignments]
+  (process-sudoku assignments
+		  (fn [matrix vars store]
+		    (let [result (solve vars store)]
+		      (map (fn [ss]
+			     (map #(.value %) ss))
+			   matrix)))))
+
+(defn- count-sudoku-solutions [assignments]
+  (process-sudoku assignments
+		  (fn [matrix vars store]
+		    (num-solutions vars store))))
