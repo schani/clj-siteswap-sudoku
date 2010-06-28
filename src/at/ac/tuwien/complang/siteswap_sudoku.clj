@@ -2,7 +2,7 @@
   (:use clojure.contrib.seq-utils
 	at.ac.tuwien.complang.jacop)
   (:import [JaCoP.core Store Variable]
-	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin]
+	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]
 	   [JaCoP.constraints Alldifferent]))
 
 (defn- make-variables [rows cols assignments store]
@@ -72,7 +72,7 @@
 
 (defn- solve [vars store]
   (let [label (DepthFirstSearch.)
-	select (InputOrderSelect. store (into-array vars) (IndomainMin.))]
+	select (InputOrderSelect. store (into-array vars) (IndomainRandom.))]
     (.labeling label store select)))
 
 (defn- num-solutions [vars store]
@@ -106,15 +106,36 @@
     (sudoku-constraints matrix store)
     (solver matrix vars store)))
 
-(defn- solve-sudoku [assignments]
-  (process-sudoku assignments
+(defn- solve-sudoku [sudoku]
+  (process-sudoku sudoku
 		  (fn [matrix vars store]
 		    (let [result (solve vars store)]
-		      (map (fn [ss]
-			     (map #(.value %) ss))
-			   matrix)))))
+		      (apply vector (map (fn [ss]
+					   (apply vector (map #(.value %) ss)))
+					 matrix))))))
 
-(defn- count-sudoku-solutions [assignments]
-  (process-sudoku assignments
+(defn- count-sudoku-solutions [sudoku]
+  (process-sudoku sudoku
 		  (fn [matrix vars store]
 		    (num-solutions vars store))))
+
+(defn- depopulate-sudoku [sudoku num-nils]
+  (let [num-solutions (count-sudoku-solutions sudoku)]
+    (assert (> num-solutions 0))
+    (if (> num-solutions 1)
+      nil
+      (if (>= (count (filter nil? (flatten sudoku))) num-nils)
+	sudoku
+	(let [rows (count sudoku)
+	      cols (count (first sudoku))
+	      coords (for [i (range rows) j (range cols)
+			   :when (not (nil? (nth (nth sudoku i) j)))]
+		       [i j])]
+	  (loop [coords (take 2 (shuffle coords))]
+	    (if (empty? coords)
+	      nil
+	      (let [[row col] (first coords)
+		    new-sudoku (assoc sudoku row (assoc (nth sudoku row) col nil))
+		    result (depopulate-sudoku new-sudoku num-nils)]
+		(or result
+		    (recur (rest coords)))))))))))
