@@ -45,7 +45,7 @@
 	expr-str (compile-expr var-map expr)]
     [vars decl expr-str]))
 
-(defn- var-list-string [var-names]
+(defn var-list-string [var-names]
   (apply str (interpose " " var-names)))
 
 (defn make-predicate-constraint [expr store]
