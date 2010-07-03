@@ -141,3 +141,8 @@
 		    result (depopulate-sudoku new-sudoku num-nils)]
 		(or result
 		    (recur (rest coords)))))))))))
+
+(defn make-siteswap-sudoku [rows cols num-nils]
+  (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
+	sudoku (solve-sudoku sudoku)]
+    (depopulate-sudoku sudoku num-nils)))
