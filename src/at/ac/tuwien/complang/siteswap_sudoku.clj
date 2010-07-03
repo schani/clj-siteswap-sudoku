@@ -51,15 +51,16 @@
     (cons (f s) (mapseq f (rest s)))))
 
 (defn- siteswap-nontrivial [ss store]
-  (let [expr (exprs-disjunction (apply concat
-				       (mapseq (fn [ss]
-						 (let [t1 (first ss)]
-						   (map (fn [t2]
-							  (list '<> t1 t2))
-							(rest ss))))
-					       ss)))
-	pred (make-predicate-constraint expr store)]
-    (.imposeDecomposition store pred)))
+  (when (> 1 (count ss))
+    (let [expr (exprs-disjunction (apply concat
+					 (mapseq (fn [ss]
+						   (let [t1 (first ss)]
+						     (map (fn [t2]
+							    (list '<> t1 t2))
+							  (rest ss))))
+						 ss)))
+	  pred (make-predicate-constraint expr store)]
+      (.imposeDecomposition store pred))))
 
 (defn- transpose [m]
   (apply map list m))
