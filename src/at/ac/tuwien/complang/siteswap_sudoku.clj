@@ -110,10 +110,11 @@
 (defn- solve-sudoku [sudoku]
   (process-sudoku sudoku
 		  (fn [matrix vars store]
-		    (let [result (solve vars store)]
+		    (if (solve vars store)
 		      (apply vector (map (fn [ss]
 					   (apply vector (map #(.value %) ss)))
-					 matrix))))))
+					 matrix))
+		      nil))))
 
 (defn- count-sudoku-solutions [sudoku]
   (process-sudoku sudoku
