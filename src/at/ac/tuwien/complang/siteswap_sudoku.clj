@@ -133,14 +133,9 @@
 	      coords (for [i (range rows) j (range cols)
 			   :when (not (nil? (nth (nth sudoku i) j)))]
 		       [i j])]
-	  (loop [coords (take 2 (shuffle coords))]
-	    (if (empty? coords)
-	      nil
-	      (let [[row col] (first coords)
-		    new-sudoku (assoc sudoku row (assoc (nth sudoku row) col nil))
-		    result (depopulate-sudoku new-sudoku throw-min throw-max num-nils)]
-		(or result
-		    (recur (rest coords)))))))))))
+	  (let [[row col] (rand-nth coords)
+		new-sudoku (assoc sudoku row (assoc (nth sudoku row) col nil))]
+	  (depopulate-sudoku new-sudoku throw-min throw-max num-nils)))))))
 
 (defn sudoku-to-string [sudoku]
   (let [throw-str (fn [t]
