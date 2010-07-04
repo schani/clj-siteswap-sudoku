@@ -5,16 +5,18 @@
 	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]
 	   [JaCoP.constraints Alldifferent]))
 
-(defn- make-variables [rows cols assignments store]
-  (map (fn [row]
-	 (map (fn [col]
-		(let [name (str "t" row col)
-		      assignment (nth (nth assignments row) col)]
-		  (if (nil? assignment)
-		    (Variable. store name 1 9)
-		    (Variable. store name assignment assignment))))
-	      (range cols)))
-       (range rows)))
+(defn- make-variables [assignments throw-min throw-max store]
+  (let [rows (count assignments)
+	cols (count (first assignments))]
+    (map (fn [row]
+	   (map (fn [col]
+		  (let [name (str "t" row col)
+			assignment (nth (nth assignments row) col)]
+		    (if (nil? assignment)
+		      (Variable. store name throw-min throw-max)
+		      (Variable. store name assignment assignment))))
+		(range cols)))
+	 (range rows))))
 
 (defn- is-siteswap [ss store]
   (let [period (count ss)
@@ -98,17 +100,15 @@
 		(siteswaps-different ss1 ss2 store))
 	      matrix-t)))
 
-(defn- process-sudoku [assignments solver]
-  (let [rows (count assignments)
-	cols (count (first assignments))
-	store (Store.)
-	matrix (make-variables rows cols assignments store)
+(defn- process-sudoku [assignments throw-min throw-max solver]
+  (let [store (Store.)
+	matrix (make-variables assignments throw-min throw-max store)
 	vars (flatten matrix)]
     (sudoku-constraints matrix store)
     (solver matrix vars store)))
 
-(defn- solve-sudoku [sudoku]
-  (process-sudoku sudoku
+(defn- solve-sudoku [sudoku throw-min throw-max]
+  (process-sudoku sudoku throw-min throw-max
 		  (fn [matrix vars store]
 		    (if (solve vars store)
 		      (apply vector (map (fn [ss]
@@ -116,13 +116,13 @@
 					 matrix))
 		      nil))))
 
-(defn- count-sudoku-solutions [sudoku]
-  (process-sudoku sudoku
+(defn- count-sudoku-solutions [sudoku throw-min throw-max]
+  (process-sudoku sudoku throw-min throw-max
 		  (fn [matrix vars store]
 		    (num-solutions vars store))))
 
-(defn- depopulate-sudoku [sudoku num-nils]
-  (let [num-solutions (count-sudoku-solutions sudoku)]
+(defn- depopulate-sudoku [sudoku throw-min throw-max num-nils]
+  (let [num-solutions (count-sudoku-solutions sudoku throw-min throw-max)]
     (assert (> num-solutions 0))
     (if (> num-solutions 1)
       nil
@@ -138,11 +138,11 @@
 	      nil
 	      (let [[row col] (first coords)
 		    new-sudoku (assoc sudoku row (assoc (nth sudoku row) col nil))
-		    result (depopulate-sudoku new-sudoku num-nils)]
+		    result (depopulate-sudoku new-sudoku throw-min throw-max num-nils)]
 		(or result
 		    (recur (rest coords)))))))))))
 
-(defn make-siteswap-sudoku [rows cols num-nils]
+(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
-	sudoku (solve-sudoku sudoku)]
-    (depopulate-sudoku sudoku num-nils)))
+	sudoku (solve-sudoku sudoku throw-min throw-max)]
+    (depopulate-sudoku sudoku throw-min throw-max num-nils)))
