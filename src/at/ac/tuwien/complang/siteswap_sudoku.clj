@@ -1,6 +1,6 @@
 (ns at.ac.tuwien.complang.siteswap-sudoku
-  (:use clojure.contrib.seq-utils
-	at.ac.tuwien.complang.jacop)
+  (:use at.ac.tuwien.complang.jacop)
+  (:require clojure.contrib.seq-utils)
   (:import [JaCoP.core Store Variable]
 	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]
 	   [JaCoP.constraints Alldifferent]))
@@ -44,7 +44,7 @@
 			(exprs-disjunction (map (fn [t1 t2]
 						  (list '<> t1 t2))
 						ss1 rot)))
-		      (rotations ss2))]
+		      (clojure.contrib.seq-utils/rotations ss2))]
       (.imposeDecomposition store (make-predicate-constraint expr store)))))
 
 (defn- mapseq [f s]
