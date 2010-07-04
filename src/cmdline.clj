@@ -13,11 +13,16 @@
      [unknowns "Number of unknowns" "5"]
      remaining]
     (loop []
-      (let [sudoku (make-siteswap-sudoku (java.lang.Integer/parseInt rows)
+      (let [min-throw (java.lang.Integer/parseInt min-throw)
+	    max-throw (java.lang.Integer/parseInt max-throw)
+	    sudoku (make-siteswap-sudoku (java.lang.Integer/parseInt rows)
 					 (java.lang.Integer/parseInt cols)
-					 (java.lang.Integer/parseInt min-throw)
-					 (java.lang.Integer/parseInt max-throw)
+					 min-throw
+					 max-throw
 					 (java.lang.Integer/parseInt unknowns))]
 	(if sudoku
-	  (println (sudoku-to-string sudoku))
+	  (do
+	    (println (sudoku-to-string sudoku))
+	    (println)
+	    (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw))))
 	  (recur))))))

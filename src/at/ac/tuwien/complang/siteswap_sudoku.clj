@@ -107,7 +107,7 @@
     (sudoku-constraints matrix store)
     (solver matrix vars store)))
 
-(defn- solve-sudoku [sudoku throw-min throw-max]
+(defn solve-sudoku [sudoku throw-min throw-max]
   (process-sudoku sudoku throw-min throw-max
 		  (fn [matrix vars store]
 		    (if (solve vars store)
