@@ -76,12 +76,14 @@
 (defn- solve [vars store]
   (let [label (DepthFirstSearch.)
 	select (InputOrderSelect. store (into-array vars) (IndomainRandom.))]
+    (.setPrintInfo label false)
     (.labeling label store select)))
 
 (defn- num-solutions [vars store]
   (let [label (DepthFirstSearch.)
 	select (InputOrderSelect. store (into-array vars) (IndomainMin.))]
     (.searchAll (.getSolutionListener label) true)
+    (.setPrintInfo label false)
     (.labeling label store select)
     (.solutionsNo (.getSolutionListener label))))
 
