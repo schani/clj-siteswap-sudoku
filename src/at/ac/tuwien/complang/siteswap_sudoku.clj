@@ -142,6 +142,20 @@
 		(or result
 		    (recur (rest coords)))))))))))
 
+(defn sudoku-to-string [sudoku]
+  (let [throw-str (fn [t]
+		    (cond (nil? t) "_"
+			  (< t 10) (str t)
+			  :else (str (char (+ (int \a) (- t 10))))))]
+    (apply str
+	   (interpose "\n"
+		      (map (fn [row]
+			     (apply str
+				    (interpose " "
+					       (map throw-str
+						    row))))
+			 sudoku)))))
+
 (defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
 	sudoku (solve-sudoku sudoku throw-min throw-max)]
