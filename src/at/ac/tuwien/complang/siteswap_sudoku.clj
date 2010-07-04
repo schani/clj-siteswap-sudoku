@@ -53,7 +53,7 @@
     (cons (f s) (mapseq f (rest s)))))
 
 (defn- siteswap-nontrivial [ss store]
-  (when (> 1 (count ss))
+  (when (> (count ss) 1)
     (let [expr (exprs-disjunction (apply concat
 					 (mapseq (fn [ss]
 						   (let [t1 (first ss)]
