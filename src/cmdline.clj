@@ -25,4 +25,6 @@
 	    (println (sudoku-to-string sudoku))
 	    (println)
 	    (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw))))
-	  (recur))))))
+	  (do
+	    (println "No luck - retrying")
+	    (recur)))))))
