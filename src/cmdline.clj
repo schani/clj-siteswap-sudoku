@@ -11,6 +11,7 @@
      [min-throw "Minimum throw" "1"]
      [max-throw "Maximum throw" "9"]
      [unknowns "Number of unknowns" "5"]
+     [complex-rules? "Siteswaps have to be different" false]
      [max-tries "Maximum number of tries" nil]
      [sub-tries "Number of sub-tries per try" "50"]
      remaining]
@@ -28,12 +29,12 @@
 					   (println "Trying" try-num)))
 			(make-siteswap-sudoku rows cols
 					      min-throw max-throw
-					      unknowns sub-tries))
+					      unknowns complex-rules? sub-tries))
 		      try-nums)
 	  sudoku (first (filter #(not (nil? %)) tries))]
       (if sudoku
 	(do
 	  (println (sudoku-to-string sudoku))
 	  (println)
-	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw))))
+	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?))))
 	(println "No puzzles found")))))

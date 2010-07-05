@@ -91,7 +91,7 @@
     (.labeling label store select)
     (.solutionsNo (.getSolutionListener label))))
 
-(defn- sudoku-constraints [matrix store]
+(defn- sudoku-constraints [matrix complex-rules store]
   (let [matrix-t (transpose matrix)]
     (doseq [ss matrix]
       (is-siteswap ss store)
@@ -99,33 +99,35 @@
     (doseq [ss matrix-t]
       (is-siteswap ss store)
       (siteswap-nontrivial ss store))
-    (do-pairs (fn [ss1 ss2]
-		(siteswaps-different ss1 ss2 store))
-	      matrix)
-    (do-pairs (fn [ss1 ss2]
-		(siteswaps-different ss1 ss2 store))
-	      matrix-t)))
+    (when complex-rules
+      (do-pairs (fn [ss1 ss2]
+		  (siteswaps-different ss1 ss2 store))
+		matrix)
+      (do-pairs (fn [ss1 ss2]
+		  (siteswaps-different ss1 ss2 store))
+		matrix-t))))
 
 (defvar sudoku-constraints-cache
-  (memoize (fn [rows cols throw-min throw-max]
+  (memoize (fn [rows cols throw-min throw-max complex-rules]
 	     (let [store (Store.)
 		   matrix (make-variables (repeat rows (repeat cols nil))
 					  throw-min throw-max store)]
 	       (with-caching (flatten matrix)
-		 (fn [] (sudoku-constraints matrix store)))))))
+		 (fn [] (sudoku-constraints matrix complex-rules store)))))))
 
-(defn- process-sudoku [assignments throw-min throw-max solver]
+(defn- process-sudoku [assignments throw-min throw-max complex-rules solver]
   (let [store (Store.)
 	matrix (make-variables assignments throw-min throw-max store)
 	constraints-cache (sudoku-constraints-cache (count matrix)
 						    (count (first matrix))
-						    throw-min throw-max)
+						    throw-min throw-max
+						    complex-rules)
 	vars (flatten matrix)]
     (impose-cache constraints-cache vars store)
     (solver matrix vars store)))
 
-(defn solve-sudoku [sudoku throw-min throw-max]
-  (process-sudoku sudoku throw-min throw-max
+(defn solve-sudoku [sudoku throw-min throw-max complex-rules]
+  (process-sudoku sudoku throw-min throw-max complex-rules
 		  (fn [matrix vars store]
 		    (if (solve vars store)
 		      (apply vector (map (fn [ss]
@@ -133,8 +135,8 @@
 					 matrix))
 		      nil))))
 
-(defn- count-sudoku-solutions [sudoku throw-min throw-max max-solutions]
-  (process-sudoku sudoku throw-min throw-max
+(defn- count-sudoku-solutions [sudoku throw-min throw-max complex-rules max-solutions]
+  (process-sudoku sudoku throw-min throw-max complex-rules
 		  (fn [matrix vars store]
 		    (num-solutions vars store max-solutions))))
 
@@ -144,7 +146,7 @@
 		   col (range cols)]
 	       [row col]))))
 
-(defn- depopulate-sudoku [sudoku throw-min throw-max num-nils]
+(defn- depopulate-sudoku [sudoku throw-min throw-max complex-rules num-nils]
   (let [[rows cols] (sudoku-dimensions sudoku)
 	all-positions (matrix-positions rows cols)
 	nil-positions (set (take num-nils (shuffle all-positions)))
@@ -155,7 +157,7 @@
 						   throw))
 					       row))
 				sudoku)
-	num-solutions (count-sudoku-solutions new-sudoku throw-min throw-max 2)]
+	num-solutions (count-sudoku-solutions new-sudoku throw-min throw-max complex-rules 2)]
     (assert (> num-solutions 0))
     (if (> num-solutions 1)
       nil
@@ -175,12 +177,12 @@
 						    row))))
 			 sudoku)))))
 
-(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils num-tries]
+(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils complex-rules num-tries]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
-	sudoku (solve-sudoku sudoku throw-min throw-max)]
+	sudoku (solve-sudoku sudoku throw-min throw-max complex-rules)]
     (loop [i 0]
       (if (>= i num-tries)
 	nil
-	(if-let [result (depopulate-sudoku sudoku throw-min throw-max num-nils)]
+	(if-let [result (depopulate-sudoku sudoku throw-min throw-max complex-rules num-nils)]
 	  result
 	  (recur (inc i)))))))
