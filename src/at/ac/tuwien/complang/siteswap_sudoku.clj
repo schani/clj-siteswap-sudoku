@@ -1,5 +1,6 @@
 (ns at.ac.tuwien.complang.siteswap-sudoku
-  (:use at.ac.tuwien.complang.jacop)
+  (:use at.ac.tuwien.complang.jacop
+	clojure.contrib.def)
   (:require clojure.contrib.seq-utils)
   (:import [JaCoP.core Store]
 	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]))
@@ -23,7 +24,7 @@
 	ls (map (fn [t i]
 		  (let [l (make-variable 0 (dec period) store)
 			iv (make-variable i store)]
-		    (predicate-constraint (= l (mod (+ t iv) period-v)) store)
+		    (predicate (= l (mod (+ t iv) period-v)) store)
 		    l))
 		ss
 		(range period))]
@@ -44,7 +45,7 @@
 						  (list '<> t1 t2))
 						ss1 rot)))
 		      (clojure.contrib.seq-utils/rotations ss2))]
-      (.imposeDecomposition store (make-predicate-constraint expr store)))))
+      (computed-predicate expr store))))
 
 (defn- mapseq [f s]
   (if (empty? s)
@@ -59,9 +60,8 @@
 						     (map (fn [t2]
 							    (list '<> t1 t2))
 							  (rest ss))))
-						 ss)))
-	  pred (make-predicate-constraint expr store)]
-      (.imposeDecomposition store pred))))
+						 ss)))]
+      (computed-predicate expr store))))
 
 (defn- transpose [m]
   (apply map list m))
@@ -101,11 +101,22 @@
 		(siteswaps-different ss1 ss2 store))
 	      matrix-t)))
 
+(defvar sudoku-constraints-cache
+  (memoize (fn [rows cols throw-min throw-max]
+	     (let [store (Store.)
+		   matrix (make-variables (repeat rows (repeat cols nil))
+					  throw-min throw-max store)]
+	       (with-caching (flatten matrix)
+		 (fn [] (sudoku-constraints matrix store)))))))
+
 (defn- process-sudoku [assignments throw-min throw-max solver]
   (let [store (Store.)
 	matrix (make-variables assignments throw-min throw-max store)
+	constraints-cache (sudoku-constraints-cache (count matrix)
+						    (count (first matrix))
+						    throw-min throw-max)
 	vars (flatten matrix)]
-    (sudoku-constraints matrix store)
+    (impose-cache constraints-cache vars store)
     (solver matrix vars store)))
 
 (defn solve-sudoku [sudoku throw-min throw-max]
