@@ -13,22 +13,25 @@
      [unknowns "Number of unknowns" "5"]
      [max-tries "Maximum number of tries" nil]
      remaining]
-    (let [min-throw (java.lang.Integer/parseInt min-throw)
+    (let [rows (java.lang.Integer/parseInt rows)
+	  cols (java.lang.Integer/parseInt cols)
+	  min-throw (java.lang.Integer/parseInt min-throw)
 	  max-throw (java.lang.Integer/parseInt max-throw)
-	  max-tries (and max-tries (java.lang.Integer/parseInt max-tries))]
-      (loop [tries 1]
-	(let [sudoku (make-siteswap-sudoku (java.lang.Integer/parseInt rows)
-					   (java.lang.Integer/parseInt cols)
-					   min-throw
-					   max-throw
-					   (java.lang.Integer/parseInt unknowns))]
-	  (if sudoku
-	    (do
-	      (println (sudoku-to-string sudoku))
-	      (println)
-	      (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw))))
-	    (if (and max-tries (>= tries max-tries))
-	      (println "No puzzles found")
-	      (do
-		(println "No luck - retrying after" tries "tries")
-		(recur (inc tries))))))))))
+	  unknowns (java.lang.Integer/parseInt unknowns)
+	  max-tries (and max-tries (java.lang.Integer/parseInt max-tries))
+	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
+	  lock-atom (atom nil)
+	  tries (pmap (fn [try-num]
+			(swap! lock-atom (fn [_]
+					   (println "Trying" try-num)))
+			(make-siteswap-sudoku rows cols
+					      min-throw max-throw
+					      unknowns))
+		      try-nums)
+	  sudoku (first (filter #(not (nil? %)) tries))]
+      (if sudoku
+	(do
+	  (println (sudoku-to-string sudoku))
+	  (println)
+	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw))))
+	(println "No puzzles found")))))
