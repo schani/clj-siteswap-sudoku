@@ -22,9 +22,9 @@
 	  max-tries (and max-tries (java.lang.Integer/parseInt max-tries))
 	  sub-tries (java.lang.Integer/parseInt sub-tries)
 	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
-	  lock-atom (atom nil)
+	  lock-agent (agent nil)
 	  tries (pmap (fn [try-num]
-			(swap! lock-atom (fn [_]
+			(send lock-agent (fn [_]
 					   (println "Trying" try-num)))
 			(make-siteswap-sudoku rows cols
 					      min-throw max-throw
