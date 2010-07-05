@@ -1,9 +1,8 @@
 (ns at.ac.tuwien.complang.siteswap-sudoku
   (:use at.ac.tuwien.complang.jacop)
   (:require clojure.contrib.seq-utils)
-  (:import [JaCoP.core Store Variable]
-	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]
-	   [JaCoP.constraints Alldifferent]))
+  (:import [JaCoP.core Store]
+	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]))
 
 (defn- make-variables [assignments throw-min throw-max store]
   (let [rows (count assignments)
@@ -13,22 +12,22 @@
 		  (let [name (str "t" row col)
 			assignment (nth (nth assignments row) col)]
 		    (if (nil? assignment)
-		      (Variable. store name throw-min throw-max)
-		      (Variable. store name assignment assignment))))
+		      (make-variable name throw-min throw-max store)
+		      (make-variable name assignment store))))
 		(range cols)))
 	 (range rows))))
 
 (defn- is-siteswap [ss store]
   (let [period (count ss)
-	period-v (Variable. store period period)
+	period-v (make-variable period store)
 	ls (map (fn [t i]
-		  (let [l (Variable. store 0 (dec period))
-			iv (Variable. store i i)]
+		  (let [l (make-variable 0 (dec period) store)
+			iv (make-variable i store)]
 		    (predicate-constraint (= l (mod (+ t iv) period-v)) store)
 		    l))
 		ss
 		(range period))]
-    (.impose store (Alldifferent. (into-array ls)))))
+    (all-different ls store)))
 
 (defn- exprs-disjunction [exprs]
   (reduce (fn [a & b]

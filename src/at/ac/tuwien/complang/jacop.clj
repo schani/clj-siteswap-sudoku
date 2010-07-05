@@ -1,7 +1,18 @@
 (ns at.ac.tuwien.complang.jacop
-  (:use clojure.set)
+  (:use clojure.set
+	clojure.contrib.def)
   (:import [JaCoP.core Store Variable]
-	   [JaCoP.constraints Predicate]))
+	   [JaCoP.constraints Alldifferent Predicate]))
+
+(defn make-variable
+  ([constant store] (Variable. store constant constant))
+  ([name-or-min const-or-max store] (if (string? name-or-min)
+				      (Variable. store name-or-min const-or-max const-or-max)
+				      (Variable. store name-or-min const-or-max)))
+  ([name min max store] (Variable. store name min max)))
+
+(defn all-different [vars store]
+  (.impose store (Alldifferent. (into-array vars))))
 
 (defn- expr-vars [expr]
   (cond (seq? expr) (apply union (map expr-vars (rest expr)))
