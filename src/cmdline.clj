@@ -12,6 +12,7 @@
      [max-throw "Maximum throw" "9"]
      [unknowns "Number of unknowns" "5"]
      [max-tries "Maximum number of tries" nil]
+     [sub-tries "Number of sub-tries per try" "50"]
      remaining]
     (let [rows (java.lang.Integer/parseInt rows)
 	  cols (java.lang.Integer/parseInt cols)
@@ -19,6 +20,7 @@
 	  max-throw (java.lang.Integer/parseInt max-throw)
 	  unknowns (java.lang.Integer/parseInt unknowns)
 	  max-tries (and max-tries (java.lang.Integer/parseInt max-tries))
+	  sub-tries (java.lang.Integer/parseInt sub-tries)
 	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
 	  lock-atom (atom nil)
 	  tries (pmap (fn [try-num]
@@ -26,7 +28,7 @@
 					   (println "Trying" try-num)))
 			(make-siteswap-sudoku rows cols
 					      min-throw max-throw
-					      unknowns))
+					      unknowns sub-tries))
 		      try-nums)
 	  sudoku (first (filter #(not (nil? %)) tries))]
       (if sudoku

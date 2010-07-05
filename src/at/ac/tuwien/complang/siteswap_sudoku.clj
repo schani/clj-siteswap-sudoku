@@ -5,9 +5,12 @@
   (:import [JaCoP.core Store]
 	   [JaCoP.search DepthFirstSearch InputOrderSelect IndomainMin IndomainRandom]))
 
+(defn- sudoku-dimensions [matrix]
+  [(count matrix)
+   (count (first matrix))])
+
 (defn- make-variables [assignments throw-min throw-max store]
-  (let [rows (count assignments)
-	cols (count (first assignments))]
+  (let [[rows cols] (sudoku-dimensions assignments)]
     (map (fn [row]
 	   (map (fn [col]
 		  (let [name (str "t" row col)
@@ -133,21 +136,28 @@
 		  (fn [matrix vars store]
 		    (num-solutions vars store))))
 
+(defvar- matrix-positions
+  (memoize (fn [rows cols]
+	     (for [row (range rows)
+		   col (range cols)]
+	       [row col]))))
+
 (defn- depopulate-sudoku [sudoku throw-min throw-max num-nils]
-  (let [num-solutions (count-sudoku-solutions sudoku throw-min throw-max)]
+  (let [[rows cols] (sudoku-dimensions sudoku)
+	all-positions (matrix-positions rows cols)
+	nil-positions (set (take num-nils (shuffle all-positions)))
+	new-sudoku (map-indexed (fn [row-index row]
+				  (map-indexed (fn [col-index throw]
+						 (if (contains? nil-positions [row-index col-index])
+						   nil
+						   throw))
+					       row))
+				sudoku)
+	num-solutions (count-sudoku-solutions new-sudoku throw-min throw-max)]
     (assert (> num-solutions 0))
     (if (> num-solutions 1)
       nil
-      (if (>= (count (filter nil? (flatten sudoku))) num-nils)
-	sudoku
-	(let [rows (count sudoku)
-	      cols (count (first sudoku))
-	      coords (for [i (range rows) j (range cols)
-			   :when (not (nil? (nth (nth sudoku i) j)))]
-		       [i j])]
-	  (let [[row col] (rand-nth coords)
-		new-sudoku (assoc sudoku row (assoc (nth sudoku row) col nil))]
-	  (depopulate-sudoku new-sudoku throw-min throw-max num-nils)))))))
+      new-sudoku)))
 
 (defn sudoku-to-string [sudoku]
   (let [throw-str (fn [t]
@@ -163,7 +173,12 @@
 						    row))))
 			 sudoku)))))
 
-(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils]
+(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils num-tries]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
 	sudoku (solve-sudoku sudoku throw-min throw-max)]
-    (depopulate-sudoku sudoku throw-min throw-max num-nils)))
+    (loop [i 0]
+      (if (>= i num-tries)
+	nil
+	(if-let [result (depopulate-sudoku sudoku throw-min throw-max num-nils)]
+	  result
+	  (recur (inc i)))))))
