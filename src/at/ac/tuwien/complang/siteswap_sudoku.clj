@@ -81,10 +81,12 @@
     (.setPrintInfo label false)
     (.labeling label store select)))
 
-(defn- num-solutions [vars store]
+(defn- num-solutions [vars store max]
   (let [label (DepthFirstSearch.)
 	select (InputOrderSelect. store (into-array vars) (IndomainMin.))]
-    (.searchAll (.getSolutionListener label) true)
+    (if max
+      (.setSolutionLimit (.getSolutionListener label) max)
+      (.searchAll (.getSolutionListener label) true))
     (.setPrintInfo label false)
     (.labeling label store select)
     (.solutionsNo (.getSolutionListener label))))
@@ -131,10 +133,10 @@
 					 matrix))
 		      nil))))
 
-(defn- count-sudoku-solutions [sudoku throw-min throw-max]
+(defn- count-sudoku-solutions [sudoku throw-min throw-max max-solutions]
   (process-sudoku sudoku throw-min throw-max
 		  (fn [matrix vars store]
-		    (num-solutions vars store))))
+		    (num-solutions vars store max-solutions))))
 
 (defvar- matrix-positions
   (memoize (fn [rows cols]
@@ -153,7 +155,7 @@
 						   throw))
 					       row))
 				sudoku)
-	num-solutions (count-sudoku-solutions new-sudoku throw-min throw-max)]
+	num-solutions (count-sudoku-solutions new-sudoku throw-min throw-max 2)]
     (assert (> num-solutions 0))
     (if (> num-solutions 1)
       nil
