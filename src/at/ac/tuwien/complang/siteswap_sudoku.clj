@@ -177,10 +177,14 @@
 						    row))))
 			 sudoku)))))
 
-(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils complex-rules num-tries]
+(defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils complex-rules num-tries verbose]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
 	sudoku (solve-sudoku sudoku throw-min throw-max complex-rules)]
+    (when verbose
+      (println (sudoku-to-string sudoku)))
     (loop [i 0]
+      (when verbose
+	(println "subtry" i))
       (if (>= i num-tries)
 	nil
 	(if-let [result (depopulate-sudoku sudoku throw-min throw-max complex-rules num-nils)]

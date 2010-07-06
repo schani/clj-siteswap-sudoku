@@ -14,6 +14,7 @@
      [complex-rules? "Siteswaps have to be different" false]
      [max-tries "Maximum number of tries" nil]
      [sub-tries "Number of sub-tries per try" "50"]
+     [verbose? "Print progress messages" false]
      remaining]
     (let [rows (java.lang.Integer/parseInt rows)
 	  cols (java.lang.Integer/parseInt cols)
@@ -25,11 +26,12 @@
 	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
 	  lock-agent (agent nil)
 	  tries (map (fn [try-num]
-		       (send lock-agent (fn [_]
-					  (println "Trying" try-num)))
+		       (when verbose?
+			 (send lock-agent (fn [_]
+					    (println "Trying" try-num))))
 		       (make-siteswap-sudoku rows cols
 					     min-throw max-throw
-					     unknowns complex-rules? sub-tries))
+					     unknowns complex-rules? sub-tries verbose?))
 		     try-nums)
 	  sudoku (first (filter #(not (nil? %)) tries))]
       (if sudoku
