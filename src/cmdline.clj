@@ -24,17 +24,20 @@
 	  sub-tries (java.lang.Integer/parseInt sub-tries)
 	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
 	  lock-agent (agent nil)
-	  tries (pmap (fn [try-num]
-			(send lock-agent (fn [_]
-					   (println "Trying" try-num)))
-			(make-siteswap-sudoku rows cols
-					      min-throw max-throw
-					      unknowns complex-rules? sub-tries))
-		      try-nums)
+	  tries (map (fn [try-num]
+		       (send lock-agent (fn [_]
+					  (println "Trying" try-num)))
+		       (make-siteswap-sudoku rows cols
+					     min-throw max-throw
+					     unknowns complex-rules? sub-tries))
+		     try-nums)
 	  sudoku (first (filter #(not (nil? %)) tries))]
       (if sudoku
 	(do
 	  (println (sudoku-to-string sudoku))
 	  (println)
-	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?))))
-	(println "No puzzles found")))))
+	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?)))
+	  (System/exit 0))
+	(do
+	  (println "No puzzles found")
+	  (System/exit 1))))))
