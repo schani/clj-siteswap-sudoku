@@ -1,4 +1,4 @@
-(defproject siteswap-sudoku "0.0.1-SNAPSHOT"
+(defproject siteswap-sudoku "1.0"
   :description "Siteswap Sudoku Generator"
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]]
