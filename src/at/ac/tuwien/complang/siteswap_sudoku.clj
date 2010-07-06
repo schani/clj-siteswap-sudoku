@@ -163,25 +163,28 @@
       nil
       new-sudoku)))
 
-(defn sudoku-to-string [sudoku]
-  (let [throw-str (fn [t]
-		    (cond (nil? t) "_"
+(defn sudoku-to-string [sudoku org-mode]
+  (let [unknown (if org-mode "." "_")
+	throw-str (fn [t]
+		    (cond (nil? t) unknown
 			  (< t 10) (str t)
-			  :else (str (char (+ (int \a) (- t 10))))))]
+			  :else (str (char (+ (int \a) (- t 10))))))
+	line-builder (if org-mode
+		       (fn [throws]
+			 (str "|" (apply str (interpose "|" throws)) "|"))
+		       (fn [throws]
+			 (apply str (interpose " " throws))))]
     (apply str
 	   (interpose "\n"
 		      (map (fn [row]
-			     (apply str
-				    (interpose " "
-					       (map throw-str
-						    row))))
+			     (line-builder (map throw-str row)))
 			 sudoku)))))
 
 (defn make-siteswap-sudoku [rows cols throw-min throw-max num-nils complex-rules num-tries verbose]
   (let [sudoku (map (fn [_] (map (fn [_] nil) (range cols))) (range rows))
 	sudoku (solve-sudoku sudoku throw-min throw-max complex-rules)]
     (when verbose
-      (println (sudoku-to-string sudoku)))
+      (println (sudoku-to-string sudoku false)))
     (loop [i 0]
       (when verbose
 	(println "subtry" i))

@@ -15,6 +15,7 @@
      [max-tries "Maximum number of tries" nil]
      [sub-tries "Number of sub-tries per try" "50"]
      [verbose? "Print progress messages" false]
+     [org-mode? "Output result in org-mode syntax" false]
      remaining]
     (let [rows (java.lang.Integer/parseInt rows)
 	  cols (java.lang.Integer/parseInt cols)
@@ -36,9 +37,13 @@
 	  sudoku (first (filter #(not (nil? %)) tries))]
       (if sudoku
 	(do
-	  (println (sudoku-to-string sudoku))
-	  (println)
-	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?)))
+	  (when org-mode?
+	    (println "*** Puzzle"))
+	  (println (sudoku-to-string sudoku org-mode?))
+	  (if org-mode?
+	    (println "*** Solution")
+	    (println))
+	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?) org-mode?))
 	  (System/exit 0))
 	(do
 	  (println "No puzzles found")
