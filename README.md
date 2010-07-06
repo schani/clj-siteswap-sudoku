@@ -15,7 +15,7 @@ Usage
 To use siteswap-sudoku you need a Java VM installed.  It's very likely
 you have this.  If not, get it [from Sun](http://java.sun.com/javase/downloads/index.jsp).
 
-Invoke the program it like this
+Invoke the program like this
 
     java -jar siteswap-sudoku.jar
 
