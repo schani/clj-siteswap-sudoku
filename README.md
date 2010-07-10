@@ -1,4 +1,4 @@
-siteswap-sudoku 1.0
+siteswap-sudoku 1.2
 ===================
 
 This is a program for generating somewhat Sudoku-like puzzles
@@ -13,7 +13,8 @@ Usage
 -----
 
 To use siteswap-sudoku you need a Java VM installed.  It's very likely
-you have this.  If not, get it [from Sun](http://java.sun.com/javase/downloads/index.jsp).
+you have one on your system already.  If not, get it
+[from Sun](http://java.sun.com/javase/downloads/index.jsp).
 
 Invoke the program like this
 
@@ -40,3 +41,28 @@ then use `--complex-rules`.  Note that if you do use that option, the
 resulting puzzles might have some solutions where two or more
 siteswaps are the same - it's your job to find the one solution where
 there are no two identical siteswaps.
+
+Note that the complex rule requirement that all siteswaps be different
+does not apply to siteswaps with period 1.  It also does not apply to
+any pair of siteswaps with different periods, i.e. 51 is considered
+different from 5151.
+
+If you want to generate a puzzle with a non-rectangular shape, use the
+`--shape-file` option to specify a file that describes the shape.  A
+space in that file stands for an empty square, every other character
+for a square that is part of a siteswap.  If such a character is a
+digit or a lowercase letter and it falls within the range of allowed
+throws, then only that throw is allowed on that square.  As an
+example, this is the same shape you would get with the options
+`--rows 2 --cols 3`:
+
+    ###
+    ###
+
+This is the same shape, but with the throw in the upper left fixed to
+a 1:
+
+    1##
+    ###
+
+See the `shapes` directory for a few more interesting examples.

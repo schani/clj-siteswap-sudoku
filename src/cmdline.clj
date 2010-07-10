@@ -8,6 +8,7 @@
     "Siteswap Sudoku generator"
     [[rows "Number of rows" "3"]
      [cols "Number of columns" "4"]
+     [shape-file "Name of shape file" nil]
      [min-throw "Minimum throw" "1"]
      [max-throw "Maximum throw" "9"]
      [unknowns "Number of unknowns" "5"]
@@ -25,12 +26,13 @@
 	  max-tries (and max-tries (java.lang.Integer/parseInt max-tries))
 	  sub-tries (java.lang.Integer/parseInt sub-tries)
 	  try-nums (if max-tries (range 1 (inc max-tries)) (iterate inc 1))
+	  shape (if shape-file (parse-shape (slurp shape-file) min-throw max-throw) (make-shape rows cols))
 	  lock-agent (agent nil)
 	  tries (map (fn [try-num]
 		       (when verbose?
 			 (send lock-agent (fn [_]
 					    (println "Trying" try-num))))
-		       (make-siteswap-sudoku rows cols
+		       (make-siteswap-sudoku shape
 					     min-throw max-throw
 					     unknowns complex-rules? sub-tries verbose?))
 		     try-nums)
@@ -43,7 +45,7 @@
 	  (if org-mode?
 	    (println "*** Solution")
 	    (println))
-	  (println (sudoku-to-string (solve-sudoku sudoku min-throw max-throw complex-rules?) org-mode?))
+	  (println (sudoku-to-string (solve-sudoku shape sudoku min-throw max-throw complex-rules?) org-mode?))
 	  (System/exit 0))
 	(do
 	  (println "No puzzles found")
