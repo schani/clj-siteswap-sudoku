@@ -66,3 +66,13 @@ a 1:
     ###
 
 See the `shapes` directory for a few more interesting examples.
+
+Hacking
+-------
+
+To get this code to run with Clojure yourself you'll need to download
+the [JaCoP Constraint Solver](http://jacop.osolpro.com/) and its
+dependency [JDom](http://www.jdom.org/downloads/index.html) yourself
+and place the two JAR files in the `lib/dev/` subdirectory.  I haven't
+been able to find repositories for those two and was too lazy and
+ignorant to put something up myself.
